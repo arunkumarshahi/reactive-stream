@@ -1,0 +1,18 @@
+# Datasource Configurations
+logging:
+  level:
+    org.springframework.data.r2dbc: DEBUG
+#spring:    
+#	h2:
+#	  console:
+#	    enabled: true
+#	    path: /h2
+
+# R2DBC Configuration
+spring:
+  r2dbc:
+    url: r2dbc:h2:mem:///test?options=DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    name: sa
+    password:
+  h2:    console:      enabled: true
+      path: /h2
