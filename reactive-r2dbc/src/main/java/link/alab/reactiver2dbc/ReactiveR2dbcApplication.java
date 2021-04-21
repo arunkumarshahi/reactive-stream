@@ -16,6 +16,9 @@ import org.springframework.r2dbc.connection.init.CompositeDatabasePopulator;
 import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
 import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.ReactiveTransactionManager;
+import org.springframework.transaction.reactive.TransactionalOperator;
 
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
@@ -28,8 +31,38 @@ import reactor.core.publisher.Flux;
 @SpringBootApplication
 public class ReactiveR2dbcApplication {
 
+	@Bean
+	ReactiveTransactionManager r2dbcTransactionManager(ConnectionFactory cf) {
+		return r2dbcTransactionManager(cf);
+	}
+
+	@Bean
+	TransactionalOperator transcationOperator(ReactiveTransactionManager rtm) {
+		return TransactionalOperator.create(rtm);
+	}
+	
 	public static void main(String[] args) {
 		SpringApplication.run(ReactiveR2dbcApplication.class, args);
+	}
+}
+
+@Service
+@RequiredArgsConstructor
+class UserService {
+	private final UserRepository reservationRepository;
+	//private final TransactionalOperator transcationOperator;
+
+	public Flux<User> saveReservation(String... nameVals) {
+		Flux<String> names = Flux.just(nameVals);
+		Flux<User> resrvations = names.map(name -> new User(null, name));
+		// Flux<Mono<Reservation>>
+		// savedReservation=resrvations.map(rsevation->reservationRepository.save(rsevation));
+		// flattening publisher of publisher into publisher
+		Flux<User> savedReservation = resrvations.flatMap(reservationRepository::save);
+//		this.reservationRepository.deleteAll().thenMany(savedReservation).thenMany(reservationRepository.findAll())
+//				.subscribe(System.out::println);
+		//return this.transcationOperator.transactional(savedReservation);
+		return savedReservation;
 	}
 }
 
@@ -53,13 +86,12 @@ interface UserRepository extends ReactiveCrudRepository<User, Long> {
 class DataLoader implements CommandLineRunner {
 	@Autowired
 	private UserRepository userRepository;
-
+private final UserService userService;
 	@Override
 	public void run(String... args) throws Exception {
 		// TODO Auto-generated method stub
-		Flux<String> names = Flux.just("arun", "julie", "sanvi", "Shravya");
-		Flux<User> users = names.map(name -> new User(null, name));
-		Flux<User> savedUsers = users.flatMap(userRepository::save);
+	
+		Flux<User> savedUsers = userService.saveReservation("arun", "julie", "sanvi", "Shravya");
 
 		this.userRepository.deleteAll().thenMany(savedUsers).thenMany(userRepository.findAll())
 				.subscribe(System.out::println);
