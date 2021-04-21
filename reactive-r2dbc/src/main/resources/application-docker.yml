@@ -30,3 +30,7 @@ spring:
       name: admin
       password: secret
       roles: USER,ADMIN,ACTUATOR
+  config:
+    activate:
+      on-profile: docker
+enabled: true
