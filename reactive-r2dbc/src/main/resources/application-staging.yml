@@ -17,11 +17,11 @@ management:
     servlet:
       context-path: /management
 spring:
-  r2dbc:
+  datasource:
     driver-class-name: org.postgresql.Driver
-    password: secret123
-    url: r2dbc:postgresql://db:5432/demodb
-    username: postgres
+    password: ${POSTGRES_ENV_POSTGRES_PASSWORD}
+    url: jdbc:postgresql://${POSTGRES_PORT_5432_TCP_ADDR}:${POSTGRES_PORT_5432_TCP_PORT}/demodb
+    username: ${POSTGRES_ENV_POSTGRES_USER}
   jpa:
     hibernate:
       ddl-auto: update

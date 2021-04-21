@@ -1,6 +1,7 @@
 package link.alab.reactiver2dbc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,14 +22,27 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.util.Assert;
-
-import io.r2dbc.h2.H2ConnectionConfiguration;
-import io.r2dbc.h2.H2ConnectionFactory;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import static org.springframework.web.reactive.function.server.RequestPredicates.method;
+import static org.springframework.web.reactive.function.server.RequestPredicates.path;
+import static org.springframework.web.reactive.function.server.RouterFunctions.nest;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+import io.r2dbc.spi.ConnectionFactories;
+//import io.r2dbc.h2.H2ConnectionConfiguration;
+//import io.r2dbc.h2.H2ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.ConnectionFactoryOptions;
+import io.r2dbc.spi.Option;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import static io.r2dbc.pool.PoolingConnectionFactoryProvider.MAX_SIZE;
+import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 
 @SpringBootApplication
 public class ReactiveR2dbcApplication {
@@ -54,17 +68,17 @@ class UserService {
 	private final UserRepository reservationRepository;
 
 	// private final TransactionalOperator transcationOperator;
-	//@Transactional
+//	 @Transactional
 	public Flux<User> saveReservation(String... nameVals) {
 		Flux<String> names = Flux.just(nameVals);
-		Flux<User> resrvations = names.map(name -> new User(null, name));
+		Flux<User> resrvations = names.map(name -> new User( null, name));
 		// Flux<Mono<Reservation>>
 		// savedReservation=resrvations.map(rsevation->reservationRepository.save(rsevation));
 		// flattening publisher of publisher into publisher
 		Flux<User> savedReservation = resrvations.flatMap(reservationRepository::save).doOnNext(this::assertValid);
 //		this.reservationRepository.deleteAll().thenMany(savedReservation).thenMany(reservationRepository.findAll())
 //				.subscribe(System.out::println);
-		// return this.transcationOperator.transactional(savedReservation);
+//		 return this.transcationOperator.transactional(savedReservation);
 		return savedReservation;
 	}
 
@@ -76,11 +90,11 @@ class UserService {
 
 @Data
 @AllArgsConstructor
-@Table("USER")
+@Table("AUSER")
 class User {
 	@Id
 	// @GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 	private String name;
 }
 
@@ -100,7 +114,7 @@ class DataLoader implements CommandLineRunner {
 	public void run(String... args) throws Exception {
 		// TODO Auto-generated method stub
 
-		Flux<User> savedUsers = userService.saveReservation("Arun", "Julie", "sanvi", "Shravya");
+		Flux<User> savedUsers = userService.saveReservation("XArun", "XJulie", "Sanvi", "XShravya");
 
 		this.userRepository.deleteAll().thenMany(savedUsers).thenMany(userRepository.findAll())
 				.subscribe(System.out::println);
@@ -109,14 +123,26 @@ class DataLoader implements CommandLineRunner {
 
 }
 
+//@Configuration
+//@EnableR2dbcRepositories
+//class R2DBCConfig {
+//
+//	@Bean
+//	public ConnectionFactory connectionFactory() {
+//		return ConnectionFactories.get(ConnectionFactoryOptions.builder().option(DRIVER, "postgresql")
+//				.option(HOST, "db").option(PORT, 5432).option(USER, "postgres").option(PASSWORD, "secret123")
+//				.option(DATABASE, "demodb").option(MAX_SIZE, 40).build());
+//	}
+//
+//}
 @Configuration
 //@EnableR2dbcRepositories(basePackages = "link.alab.reactiver2dbc")
-class DBConfig {
+class DBConfig{
 //extends AbstractR2dbcConfiguration{
 //	@Bean
-//@Profile("test")
+////@Profile("test")
 //	public ConnectionFactory connectionFactory() {
-//		System.out.println(">>>>>>>>>> Using H2 in mem R2DBC connection factory");
+////		System.out.println(">>>>>>>>>> Using H2 in mem R2DBC connection factory");
 //		 return new H2ConnectionFactory(
 //	                H2ConnectionConfiguration.builder()
 //	                        .url("mem:testdb;DB_CLOSE_DELAY=-1;TRACE_LEVEL_FILE=4")
@@ -137,4 +163,21 @@ class DBConfig {
 
 		return initializer;
 	}
+	
+	
+	@Configuration
+	@RequiredArgsConstructor
+	public class PersonController {
+		
+		private final UserRepository userRepository;	
+		 @Bean
+		    RouterFunction<ServerResponse> updateEmployeeRoute() {
+		      return route(POST("/users"), 
+//		        req -> userRepository.findAll()
+//		                  .log()
+//		                  .then(ok().build()));
+		    		  request -> ok().body(userRepository.findAll(), User.class));
+		    }
+	}
+
 }

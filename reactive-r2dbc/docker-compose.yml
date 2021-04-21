@@ -1,16 +1,24 @@
-demo-postgres:
-  image: postgres:latest
-  ports:
-    - 5432:5432
-  environment:
-    - POSTGRES_DB=demodb
-    - POSTGRES_USER=postgres
-    - POSTGRES_PASSWORD=secret123
+version: "3"
+services:
+  db:
+    image: postgres:latest
+    container_name: db
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=demodb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret123
     
     
-reactive-r2dbc:
-  image: arunkumarshahi/reactive-r2dbc
-  links:
-    - demo-postgres:postgres
-  ports:
-    - 81:8080
+  reactive-r2dbc:
+    image: arunkumarshahi/reactive-r2dbc
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=r2dbc:postgresql://db:5432/demodb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=secret123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    ports:
+      - 8080:8080
