@@ -18,7 +18,9 @@ import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.ReactiveTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import org.springframework.util.Assert;
 
 import io.r2dbc.h2.H2ConnectionConfiguration;
 import io.r2dbc.h2.H2ConnectionFactory;
@@ -31,16 +33,16 @@ import reactor.core.publisher.Flux;
 @SpringBootApplication
 public class ReactiveR2dbcApplication {
 
-	@Bean
-	ReactiveTransactionManager r2dbcTransactionManager(ConnectionFactory cf) {
-		return r2dbcTransactionManager(cf);
-	}
-
-	@Bean
-	TransactionalOperator transcationOperator(ReactiveTransactionManager rtm) {
-		return TransactionalOperator.create(rtm);
-	}
-	
+//	@Bean
+//	ReactiveTransactionManager r2dbcTransactionManager(ConnectionFactory cf) {
+//		return r2dbcTransactionManager(cf);
+//	}
+//
+//	@Bean
+//	TransactionalOperator transcationOperator(ReactiveTransactionManager rtm) {
+//		return TransactionalOperator.create(rtm);
+//	}
+//	
 	public static void main(String[] args) {
 		SpringApplication.run(ReactiveR2dbcApplication.class, args);
 	}
@@ -50,19 +52,25 @@ public class ReactiveR2dbcApplication {
 @RequiredArgsConstructor
 class UserService {
 	private final UserRepository reservationRepository;
-	//private final TransactionalOperator transcationOperator;
 
+	// private final TransactionalOperator transcationOperator;
+	//@Transactional
 	public Flux<User> saveReservation(String... nameVals) {
 		Flux<String> names = Flux.just(nameVals);
 		Flux<User> resrvations = names.map(name -> new User(null, name));
 		// Flux<Mono<Reservation>>
 		// savedReservation=resrvations.map(rsevation->reservationRepository.save(rsevation));
 		// flattening publisher of publisher into publisher
-		Flux<User> savedReservation = resrvations.flatMap(reservationRepository::save);
+		Flux<User> savedReservation = resrvations.flatMap(reservationRepository::save).doOnNext(this::assertValid);
 //		this.reservationRepository.deleteAll().thenMany(savedReservation).thenMany(reservationRepository.findAll())
 //				.subscribe(System.out::println);
-		//return this.transcationOperator.transactional(savedReservation);
+		// return this.transcationOperator.transactional(savedReservation);
 		return savedReservation;
+	}
+
+	private void assertValid(User user) {
+		Assert.isTrue(user.getName() != null && Character.isUpperCase(user.getName().charAt(0)),
+				"The name must start with capital letter");
 	}
 }
 
@@ -86,12 +94,13 @@ interface UserRepository extends ReactiveCrudRepository<User, Long> {
 class DataLoader implements CommandLineRunner {
 	@Autowired
 	private UserRepository userRepository;
-private final UserService userService;
+	private final UserService userService;
+
 	@Override
 	public void run(String... args) throws Exception {
 		// TODO Auto-generated method stub
-	
-		Flux<User> savedUsers = userService.saveReservation("arun", "julie", "sanvi", "Shravya");
+
+		Flux<User> savedUsers = userService.saveReservation("Arun", "Julie", "sanvi", "Shravya");
 
 		this.userRepository.deleteAll().thenMany(savedUsers).thenMany(userRepository.findAll())
 				.subscribe(System.out::println);

@@ -1,0 +1,16 @@
+demo-postgres:
+  image: postgres:latest
+  ports:
+    - 5432:5432
+  environment:
+    - POSTGRES_DB=demodb
+    - POSTGRES_USER=postgres
+    - POSTGRES_PASSWORD=secret123
+    
+    
+reactive-r2dbc:
+  image: arunkumarshahi/reactive-r2dbc
+  links:
+    - demo-postgres:postgres
+  ports:
+    - 81:8080
