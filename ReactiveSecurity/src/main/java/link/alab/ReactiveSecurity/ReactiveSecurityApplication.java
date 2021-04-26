@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.server.HandlerFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -58,12 +57,11 @@ public class ReactiveSecurityApplication {
             Flux<GreetingResponse> gsResponse = request.principal().map(Principal::getName).map(GreetingRequest::new)
                     .flatMapMany(gs::greetMany);
             return ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM).body(gsResponse, GreetingResponse.class);
-        })).GET("greeting", new HandlerFunction<ServerResponse>() {
-            @Override
-            public Mono<ServerResponse> handle(ServerRequest request) {
-                return null;
-            }
-        })
+        })).GET("/greeting", ((ServerRequest request) -> {
+            Mono<GreetingResponse> gsResponse = request.principal().map(Principal::getName).map(GreetingRequest::new)
+                    .flatMap(gs::greetOnce);
+            return ServerResponse.ok().body(gsResponse, GreetingResponse.class);
+        }))
                 .build();
     }
 }
@@ -90,6 +88,11 @@ class GreetingService {
         return Flux.fromStream(
                 Stream.generate(() -> greet(request)))
                 .delayElements(Duration.ofSeconds(5)).subscribeOn(Schedulers.elastic());
+    }
+
+    Mono<GreetingResponse> greetOnce(GreetingRequest request) {
+        return Mono.just(greet(request));
+
     }
 }
 
