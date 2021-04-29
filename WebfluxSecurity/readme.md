@@ -1,6 +1,6 @@
 ### flow description - token generation
 -----------------------------------------
-* user pass credentials to controller
+* user passes credentials to the controller
 * controller intercept credential and call Authentication manager with UsernamePasswordAuthenticationToken
 * upon succesful verification of authenticity controller invoke create token with authntication object.
 * This authentication object is used to generate jwt token
@@ -11,10 +11,10 @@
 * A filter jwtauthentication is added in  SecurityWebFilterChain.addFilterAt.
 * JwtTokenAuthenticationFilter implements WebFilter which verify and validate token with help of token provider bean
 
-# start mongoDB in window
-``` cd C:\software\mongodb-windows-x86_64-4.4.5\mongodb-win32-x86_64-windows-4.4.5\bin
-mongod.exe
-
+### start mongoDB in window
+---------------------------------------
+``` cd C:\software\mongodb-windows-x86_64-4.4.5\mongodb-win32-x86_64-windows-4.4.5\bin 
+    mongod.exe
 ```
 ### launch the query shell
 ``` mongo --port 27017 ```
