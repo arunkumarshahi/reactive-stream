@@ -49,9 +49,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityWebFilterChain springWebFilterChain(
-            ServerHttpSecurity http,
-            JwtTokenProvider tokenProvider) {
+    SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http, JwtTokenProvider tokenProvider) {
         return http
                 .csrf(it -> it.disable())
                 .httpBasic(it -> it.disable())
