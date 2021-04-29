@@ -54,14 +54,14 @@ public class AuthController {
 }
 @Configuration
 @Log4j2
-class GreetingController {
+class Router {
     @Bean
-    RouterFunction<ServerResponse> greetingRoute(UserRepository userRepository,
+    RouterFunction<ServerResponse> AuthRoute(UserRepository userRepository,
                                                  ReactiveAuthenticationManager authenticationManager,
                                                  JwtTokenProvider tokenProvider) {
         return route().GET("/users", r -> ok().contentType(MediaType.APPLICATION_JSON).body(userRepository.findAll(), User.class))
-                .POST("/auth/token1", request -> {
-                    return (request.bodyToMono(AuthenticationRequest.class))
+                .POST("/auth/token1", request ->
+                        (request.bodyToMono(AuthenticationRequest.class))
                             .switchIfEmpty(Mono.error(new ServerWebInputException("Request body cannot be empty.")))
                             .flatMap(login -> authenticationManager
                                     .authenticate(new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword())))
@@ -71,8 +71,8 @@ class GreetingController {
                                         httpHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
                                         var tokenBody = Map.of("id_token", jwt);
                                         return ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt).body(Mono.just(jwt), String.class);
-                             });
-                }).build();
+
+                             })).build();
 
 
     }
