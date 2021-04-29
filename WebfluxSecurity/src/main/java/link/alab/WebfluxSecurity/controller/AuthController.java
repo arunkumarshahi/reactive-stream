@@ -5,6 +5,7 @@ import link.alab.WebfluxSecurity.model.User;
 import link.alab.WebfluxSecurity.repository.UserRepository;
 import link.alab.WebfluxSecurity.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -51,12 +53,26 @@ public class AuthController {
     }
 }
 @Configuration
+@Log4j2
 class GreetingController {
     @Bean
-    RouterFunction<ServerResponse> greetingRoute(UserRepository userRepository) {
-        return route().GET("/users", r -> ok().contentType(MediaType.APPLICATION_JSON).
-                body(userRepository.findAll(), User.class))
-                .build();
+    RouterFunction<ServerResponse> greetingRoute(UserRepository userRepository,
+                                                 ReactiveAuthenticationManager authenticationManager,
+                                                 JwtTokenProvider tokenProvider) {
+        return route().GET("/users", r -> ok().contentType(MediaType.APPLICATION_JSON).body(userRepository.findAll(), User.class))
+                .POST("/auth/token1", request -> {
+                    return (request.bodyToMono(AuthenticationRequest.class))
+                            .switchIfEmpty(Mono.error(new ServerWebInputException("Request body cannot be empty.")))
+                            .flatMap(login -> authenticationManager
+                                    .authenticate(new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword())))
+                            .map(tokenProvider::createToken)
+                             .flatMap(jwt->{
+                                 HttpHeaders httpHeaders = new HttpHeaders();
+                                        httpHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
+                                        var tokenBody = Map.of("id_token", jwt);
+                                        return ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt).body(Mono.just(jwt), String.class);
+                             });
+                }).build();
 
 
     }
