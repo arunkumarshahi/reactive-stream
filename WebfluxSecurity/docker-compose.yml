@@ -1,0 +1,24 @@
+version: "3"
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - 27017:27017
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=mongo
+#      - MONGO_INITDB_ROOT_PASSWORD=password
+      
+
+    
+  WebfluxSecurity:
+    image: arunkumarshahi/WebfluxSecurity
+    depends_on:
+      - mongodb
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/blog
+      - SPRING_DATASOURCE_USERNAME=mongo
+      - SPRING_DATASOURCE_PASSWORD=password
+      
+    ports:
+      - 8080:8080
