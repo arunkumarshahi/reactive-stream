@@ -23,6 +23,20 @@
 ```
 db.user.find( {  } )
 ```
+### start mongoDB in docker compose
+---------------------------------------
+``` docker exec -it fc825fc14b70 bash
+    
+```
+### launch the query shell
+``` mongo --port 27017 ```
+
+### execute mongo query to look into DB
+```
+use blog;
+db.user.find( {  } ).pretty()
+```
+
 ### invoke api
 ```
  npm i -g json (its for json formatting in curls)

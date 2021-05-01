@@ -11,8 +11,8 @@ services:
       
 
     
-  WebfluxSecurity:
-    image: arunkumarshahi/WebfluxSecurity
+  webfluxsecurity:
+    image: arunkumarshahi/webfluxsecurity
     depends_on:
       - mongodb
     environment:

@@ -8,7 +8,10 @@ spring:
       uri: ${SPRING_DATA_MONGODB_URI}
 #      uri: mongodb://localhost:27017/blog
 #      grid-fs-database: images
-
+  config:
+    activate:
+      on-profile: docker
+enabled: true
 jwt:
   secretKey: ecf1222c-88fd-47f3-988f-bdd78bade1ad
 logging:
