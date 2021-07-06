@@ -1,7 +1,6 @@
 package link.alab.reactiver2dbc;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -22,10 +21,13 @@ import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import static org.springframework.web.reactive.function.server.RequestPredicates.method;
-import static org.springframework.web.reactive.function.server.RequestPredicates.path;
+
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.nest;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
@@ -41,6 +43,9 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+
+import java.util.Vector;
+
 import static io.r2dbc.pool.PoolingConnectionFactoryProvider.MAX_SIZE;
 import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 
@@ -62,6 +67,24 @@ public class ReactiveR2dbcApplication {
 	}
 }
 
+@RestController
+class HelloController{
+	@GetMapping("/eater/{id}")
+	public String getEater(@PathVariable Integer id){
+				int index =0;
+					Vector v = new Vector();
+		Runtime rt = Runtime.getRuntime();
+					while (index<id)
+					{
+						index++;
+						byte b[] = new byte[1000*1000];
+						v.add(b);
+
+						System.out.println( "free memory: " + rt.freeMemory() );
+					}
+					return "free memory: " + rt.freeMemory();
+				}
+}
 @Service
 @RequiredArgsConstructor
 class UserService {
@@ -176,8 +199,11 @@ class DBConfig{
 //		        req -> userRepository.findAll()
 //		                  .log()
 //		                  .then(ok().build()));
-		    		  request -> ok().body(userRepository.findAll(), User.class));
+		    		  request -> ok().body(userRepository.findAll(), User.class)
+					  );
 		    }
+
+
 	}
 
 }
